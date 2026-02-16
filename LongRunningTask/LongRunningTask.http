@@ -1,0 +1,6 @@
+@LongRunningTask_HostAddress = http://localhost:5007
+
+GET {{LongRunningTask_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
