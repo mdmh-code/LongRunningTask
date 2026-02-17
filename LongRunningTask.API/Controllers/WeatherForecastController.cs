@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using LongRunningTask.API.Models;
 
-namespace LongRunningTask.Controllers
+namespace LongRunningTask.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]

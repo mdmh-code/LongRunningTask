@@ -1,5 +1,7 @@
 using LongRunningTask.Infraestructure.Configuration;
 using LongRunningTask.Domain.Configuration;
+using LongRunningTask.Domain;
+using LongRunningTask.API.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +30,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapHub<SignalRCharacterHub>("/characterHub");
+var messageGroup = app.MapGroup("/api/message");
+messageGroup.MapPost("/", (StringProcessor processor, StringProcessRequest request) => processor.Process(request.Input));
+messageGroup.MapHub<SignalRCharacterHub>("/responsehub");
 
 app.Run();
