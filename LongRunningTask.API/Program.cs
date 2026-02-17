@@ -5,6 +5,26 @@ using LongRunningTask.API.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Bind ThreadDelayConfiguration from appsettings
+builder.Services.Configure<ThreadDelayConfiguration>(
+    builder.Configuration.GetSection("ThreadDelayConfiguration"));
+
+// Allow CORS for localhost (React/Vite dev server)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost",
+        policy => policy
+            .WithOrigins(
+                "http://localhost:5173",
+                "http://localhost:8080",
+                "ws://localhost:5173"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+    );
+});
+
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -23,6 +43,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseRouting();
+
+app.UseCors("AllowLocalhost");
 
 app.UseHttpsRedirection();
 
@@ -30,8 +53,16 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-var messageGroup = app.MapGroup("/api/message");
-messageGroup.MapPost("/", (StringProcessor processor, StringProcessRequest request) => processor.Process(request.Input));
+var messageGroup = app.MapGroup("message");
+
+messageGroup.MapPost("/", (StringProcessor processor, CharacterEmmiter emmiter, StringProcessRequest request) =>
+{
+    var processedMessage = processor.Process(request.Message);
+    emmiter.EmitCharacters(processedMessage);
+    return Results.Accepted(processedMessage);
+}
+);
+
 messageGroup.MapHub<SignalRCharacterHub>("/responsehub");
 
 app.Run();
