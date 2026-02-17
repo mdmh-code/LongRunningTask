@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  web:
+    build:
+      context: .
+      dockerfile: LongRunningTask.WebApp/Dockerfile
+    ports:
+      - "5173:5173"
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - ltrnet
+  api:
+    build:
+      context: .
+      dockerfile: LongRunningTask.API/Dockerfile
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    networks:
+      - ltrnet
+networks:
+  ltrnet:
+    driver: bridge

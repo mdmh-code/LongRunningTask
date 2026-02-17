@@ -53,13 +53,13 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-var messageGroup = app.MapGroup("message");
+var messageGroup = app.MapGroup("api/message");
 
 messageGroup.MapPost("/", (StringProcessor processor, CharacterEmmiter emmiter, StringProcessRequest request) =>
 {
     var processedMessage = processor.Process(request.Message);
     emmiter.EmitCharacters(processedMessage);
-    return Results.Accepted(processedMessage);
+    return Results.Accepted();
 }
 );
 

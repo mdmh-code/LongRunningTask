@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { HubConnectionBuilder, HubConnection } from '@microsoft/signalr';
+import { HubConnectionBuilder } from '@microsoft/signalr';
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
@@ -10,10 +10,10 @@ function App() {
   const [message, setMessage] = useState("");
   const [response, setResponse] = useState<string | null>(null);
   const [emittedText, setEmittedText] = useState("");
-  const [connection, setConnection] = useState<HubConnection | null>(null);
+
 
   useEffect(() => {
-    const hubUrl = "/message/responsehub";
+    const hubUrl = "/api/message/responsehub";
     const conn = new HubConnectionBuilder()
       .withUrl(hubUrl)
       .withAutomaticReconnect()
@@ -25,8 +25,8 @@ function App() {
 
     });
 
+
     conn.start()
-      .then(() => setConnection(conn))
       .catch(err => console.error("SignalR Connection Error:", err));
 
     return () => {
@@ -36,7 +36,7 @@ function App() {
 
   const handleSend = async () => {
     try {
-      const res = await fetch("/message", {
+      const res = await fetch("/api/message/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -48,8 +48,8 @@ function App() {
           console.log("Failed to send message", res.status, res.statusText);
           throw new Error("Failed to send message");
         }
-      const data = await res.json();
-      setResponse(JSON.stringify(data));
+      // const data = await res.json();
+      // setResponse(JSON.stringify(data));
     } catch (err: any) {
       setResponse(err.message);
     }
