@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.9'
 services:
   web:
     build:
@@ -11,6 +11,20 @@ services:
       - api
     networks:
       - ltrnet
+
+  background_processor:
+    build:
+      context: .
+      dockerfile: LongRunningTask.Processor/Dockerfile
+    ports:
+      - "9090:9090"
+      - "9091:9091"
+    depends_on:
+      queues:
+        condition: service_healthy
+    networks:
+      - ltrnet
+
   api:
     build:
       context: .
@@ -18,8 +32,26 @@ services:
     ports:
       - "8080:8080"
       - "8081:8081"
+    depends_on:
+      queues:
+        condition: service_healthy
     networks:
       - ltrnet
+
+  queues:
+    image: rabbitmq:3-management
+    container_name: longrunningtask-queues
+    hostname: queues
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - ltrnet
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 networks:
   ltrnet:
     driver: bridge

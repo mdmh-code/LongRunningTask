@@ -1,7 +1,8 @@
-﻿namespace LongRunningTask.Domain.Interfaces
+﻿
+namespace LongRunningTask.Domain.Interfaces
 {
     public interface ICharacterReceiver
     {
-        public void ReceiveCharacter(char character);
+        Task ReceiveCharacter(string userId, string processId, char result, int position);
     }
 }

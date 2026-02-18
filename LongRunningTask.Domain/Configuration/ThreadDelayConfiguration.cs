@@ -1,7 +1,6 @@
-﻿namespace LongRunningTask.Domain.Configuration
+﻿namespace LongRunningTask.Domain.Configuration;
+
+public class ThreadDelayConfiguration
 {
-    public class ThreadDelayConfiguration
-    {
-        public int MaxDelayInMilliseconds { get; set; }
-    }
+    public int MaxDelayInMilliseconds { get; set; }
 }

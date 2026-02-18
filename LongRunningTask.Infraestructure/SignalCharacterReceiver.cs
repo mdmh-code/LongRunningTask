@@ -1,13 +1,13 @@
 ﻿using LongRunningTask.Domain.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 
-namespace LongRunningTask.Infraestructure
-{
+namespace LongRunningTask.Infraestructure;
+
     public class SignalCharacterReceiver(IHubContext<SignalRCharacterHub> hubContext) : ICharacterReceiver
     {
-        public void ReceiveCharacter(char character)
+        public Task ReceiveCharacter(string userId, string processId, char result, int position)
         {
-            hubContext.Clients.All.SendAsync("ReceiveCharacter", character);
+            return hubContext.Clients.All.SendAsync("ReceiveCharacter", result, userId, processId, position);
         }
     }
-}
+

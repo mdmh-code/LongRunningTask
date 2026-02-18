@@ -1,13 +1,13 @@
+using MassTransit;
 using LongRunningTask.Infraestructure.Configuration;
+using LongRunningTask.Infraestructure.Queues;
 using LongRunningTask.Domain.Configuration;
 using LongRunningTask.Domain;
 using LongRunningTask.API.Models;
+using LongRunningTask.Infraestructure;
+using LongRunningTask.Domain.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Bind ThreadDelayConfiguration from appsettings
-builder.Services.Configure<ThreadDelayConfiguration>(
-    builder.Configuration.GetSection("ThreadDelayConfiguration"));
 
 // Allow CORS for localhost (React/Vite dev server)
 builder.Services.AddCors(options =>
@@ -32,6 +32,27 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
+builder.Services.AddScoped<ICharacterReceiver, SignalCharacterReceiver>();
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<ResponseJobConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("queues", "/", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
+
+
+
 builder.Services.RegisterDomain();
 builder.Services.RegisterInfraestructure();
 
@@ -55,14 +76,22 @@ app.MapControllers();
 
 var messageGroup = app.MapGroup("api/message");
 
-messageGroup.MapPost("/", (StringProcessor processor, CharacterEmmiter emmiter, StringProcessRequest request) =>
+
+// messageGroup.MapPost("/", (StringProcessor processor, CharacterEmmiter emmiter, StringProcessRequest request) =>
+// {
+//     var processedMessage = processor.Process(request.Message);
+//     emmiter.EmitCharacters(processedMessage);
+//     return Results.Accepted();
+// }
+// );
+
+messageGroup.MapPost("/", async (IPublisher publisher, StringProcessRequest request) =>
 {
-    var processedMessage = processor.Process(request.Message);
-    emmiter.EmitCharacters(processedMessage);
+    await publisher.Publish(new RequestJob("123", Guid.NewGuid().ToString(), request.Message));
+    
     return Results.Accepted();
 }
 );
-
 messageGroup.MapHub<SignalRCharacterHub>("/responsehub");
 
 app.Run();

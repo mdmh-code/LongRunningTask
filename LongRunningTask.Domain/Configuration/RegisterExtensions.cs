@@ -1,15 +1,15 @@
 ﻿using LongRunningTask.Domain.Interfaces;
+
 using Microsoft.Extensions.DependencyInjection;
 
-namespace LongRunningTask.Domain.Configuration
+
+namespace LongRunningTask.Domain.Configuration;
+
+public static class RegisterExtensions
 {
-    public static class RegisterExtensions
+    public static void RegisterDomain(this IServiceCollection services)
     {
-        public static void RegisterDomain(this IServiceCollection services)
-        {
-            services.AddSingleton<IDelayProvider, ThreadDelayProvider>();
-            services.AddScoped<StringProcessor>();
-            services.AddScoped<CharacterEmmiter>();
-        }
+        services.AddSingleton<IDelayProvider, ThreadDelayProvider>();
+        services.AddScoped<StringProcessor>();        
     }
 }
