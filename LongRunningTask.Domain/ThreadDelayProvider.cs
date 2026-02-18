@@ -2,17 +2,16 @@
 using LongRunningTask.Domain.Interfaces;
 using Microsoft.Extensions.Options;
 
-namespace LongRunningTask.Domain
+namespace LongRunningTask.Domain;
+
+public class ThreadDelayProvider(IOptions<ThreadDelayConfiguration> configuration) : IDelayProvider
 {
-    public class ThreadDelayProvider(IOptions<ThreadDelayConfiguration> configuration) : IDelayProvider
+    private readonly Random _random = new();
+
+    public void Delay()
     {
-        private readonly Random _random = new();
+        var emissionDelay = _random.Next(0, configuration.Value.MaxDelayInMilliseconds);
 
-        public void Delay()
-        {
-            var emissionDelay = _random.Next(0, configuration.Value.MaxDelayInMilliseconds);
-
-            Thread.Sleep(emissionDelay);
-        }
+        Thread.Sleep(emissionDelay);
     }
 }

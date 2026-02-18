@@ -32,29 +32,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
-builder.Services.AddScoped<ICharacterReceiver, SignalCharacterReceiver>();
-
-builder.Services.AddMassTransit(x =>
-{
-    x.AddConsumer<ResponseJobConsumer>();
-
-    x.UsingRabbitMq((context, cfg) =>
-    {
-        cfg.Host("queues", "/", h =>
-        {
-            h.Username("guest");
-            h.Password("guest");
-        });
-
-        cfg.ConfigureEndpoints(context);
-    });
-});
-
-
-
 builder.Services.RegisterDomain();
-builder.Services.RegisterInfraestructure();
+builder.Services.RegisterQueuePublisher();
+builder.Services.RegisterQueueConsumer<ResponseJobConsumer>();
+builder.Services.RegisterAsyncMessaging();
 
 var app = builder.Build();
 
@@ -75,15 +56,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 var messageGroup = app.MapGroup("api/message");
-
-
-// messageGroup.MapPost("/", (StringProcessor processor, CharacterEmmiter emmiter, StringProcessRequest request) =>
-// {
-//     var processedMessage = processor.Process(request.Message);
-//     emmiter.EmitCharacters(processedMessage);
-//     return Results.Accepted();
-// }
-// );
 
 messageGroup.MapPost("/", async (IPublisher publisher, StringProcessRequest request) =>
 {

@@ -1,7 +1,6 @@
-﻿namespace LongRunningTask.Domain.Interfaces
+﻿namespace LongRunningTask.Domain.Interfaces;
+
+public interface IDelayProvider
 {
-    public interface IDelayProvider
-    {
-        void Delay();
-    }
+    void Delay();
 }

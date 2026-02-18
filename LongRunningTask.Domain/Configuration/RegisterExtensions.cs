@@ -1,7 +1,5 @@
 ﻿using LongRunningTask.Domain.Interfaces;
-
 using Microsoft.Extensions.DependencyInjection;
-
 
 namespace LongRunningTask.Domain.Configuration;
 

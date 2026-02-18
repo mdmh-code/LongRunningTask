@@ -3,6 +3,7 @@ using LongRunningTask.Infraestructure.Queues;
 using LongRunningTask.Domain;
 using LongRunningTask.Domain.Interfaces;
 using LongRunningTask.Domain.Configuration;
+using LongRunningTask.Infraestructure.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,28 +16,9 @@ builder.Services.Configure<ThreadDelayConfiguration>(
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<IPublisher, Publisher>();
-
-builder.Services.AddScoped<StringProcessor>();
-builder.Services.AddSingleton<IDelayProvider, ThreadDelayProvider>();
-builder.Services.AddMassTransit(x =>
-{
-    x.AddConsumer<RequestJobConsumer>();
-
-    x.UsingRabbitMq((context, cfg) =>
-    {
-        cfg.Host("queues", "/", h =>
-        {
-            h.Username("guest");
-            h.Password("guest");
-        });
-
-        cfg.ConfigureEndpoints(context);
-    });
-});
-
-
-
+builder.Services.RegisterDomain();
+builder.Services.RegisterQueuePublisher();
+builder.Services.RegisterQueueConsumer<RequestJobConsumer>();
 
 var app = builder.Build();
 
