@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS "Jobs" (
+    "JobId" UUID PRIMARY KEY,
+    "UserId" VARCHAR(64),
+    "ProcessId" UUID,
+    "Status" VARCHAR(20),
+    "ProcessStartedOn" TIMESTAMP WITH TIME ZONE NULL,
+    "ProcessCompletedOn" TIMESTAMP WITH TIME ZONE NULL,
+    "CancelledOn" TIMESTAMP WITH TIME ZONE NULL,
+    "CreatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);

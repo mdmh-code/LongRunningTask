@@ -1,12 +1,26 @@
 version: '3.9'
 services:
+  auth:
+    image: nginx:alpine
+    container_name: authentication-service
+    hostname: auth
+    ports:
+      - "5173:80"
+    volumes:
+      - ./LongRunningTask.Authentication/nginx.conf:/etc/nginx/nginx.conf
+      - ./LongRunningTask.Authentication/.htpasswd:/etc/nginx/.htpasswd
+    depends_on:
+      - web
+    networks:
+      - ltrnet
   web:
     build:
       context: .
       dockerfile: LongRunningTask.WebApp/Dockerfile
+    container_name: web-service
+    hostname: web
     ports:
-      - "5173:5173"
-      - "80:80"
+      - "5173"
     depends_on:
       - api
     networks:
@@ -16,9 +30,11 @@ services:
     build:
       context: .
       dockerfile: LongRunningTask.Processor/Dockerfile
+    container_name: background-processor-service
+    hostname: background_processor
     ports:
-      - "9090:9090"
-      - "9091:9091"
+      - "9090:8080"
+      - "9091:8081"
     depends_on:
       queues:
         condition: service_healthy
@@ -29,6 +45,8 @@ services:
     build:
       context: .
       dockerfile: LongRunningTask.API/Dockerfile
+    container_name: api-service
+    hostname: api
     ports:
       - "8080:8080"
       - "8081:8081"
@@ -39,8 +57,8 @@ services:
       - ltrnet
 
   queues:
-    image: rabbitmq:3-management
-    container_name: longrunningtask-queues
+    image: masstransit/rabbitmq
+    container_name: queues-service
     hostname: queues
     ports:
       - "5672:5672"
@@ -52,6 +70,28 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  
+  postgres:
+    image: postgres:16
+    container_name: database-service
+    hostname: database-service
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: JobsDb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./LongRunningTask.Processor/postgres-init:/docker-entrypoint-initdb.d
+    networks:
+      - ltrnet
+volumes:
+  pg_data:
+
 networks:
   ltrnet:
     driver: bridge
+  
+
+  

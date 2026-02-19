@@ -13,11 +13,14 @@ public static class RegisterExtensions
         services.AddScoped<IPublisher, Publisher>();
     }
 
-    public static void RegisterQueueConsumer<T>(this IServiceCollection services) where T : class, IConsumer
+    public static void RegisterQueueConsumer(this IServiceCollection services, params Type[] consumerTypes)
     {
         services.AddMassTransit(x =>
         {
-            x.AddConsumer<T>();
+            foreach (var consumerType in consumerTypes)
+            {
+                x.AddConsumer(consumerType);
+            }
 
             x.UsingRabbitMq((context, cfg) =>
             {
@@ -32,6 +35,7 @@ public static class RegisterExtensions
                 cfg.UseMessageRetry(r =>
                 {
                     r.Interval(3, TimeSpan.FromSeconds(5));
+                    r.Ignore<OperationCanceledException>();
                 });
 
                 cfg.UseDelayedRedelivery(r => r.Intervals(
@@ -41,7 +45,6 @@ public static class RegisterExtensions
                 ));
 
                 cfg.ConfigureEndpoints(context);
-                
             });
         });
     }

@@ -10,8 +10,8 @@ public class ResponseJobConsumer(ILogger<ResponseJobConsumer> logger, ICharacter
     {
         var message = context.Message;
 
-        logger.LogInformation("Received response for {ProcessId}: {Character} at position {Position}", message.ProcessId, message.Result, message.Position);
+        logger.LogInformation("Received response for {ProcessId}: {Character} at position {Position}, isLast: {IsLast}", message.ProcessId, message.Result, message.Position, message.IsLast);
 
-        return characterReceiver.ReceiveCharacter(message.UserId, message.ProcessId, message.Result, message.Position);
+        return characterReceiver.ReceiveCharacter(message.UserId, message.ProcessId, message.Result, message.Position, message.IsLast);
     }
 }

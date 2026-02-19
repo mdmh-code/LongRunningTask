@@ -15,9 +15,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowLocalhost",
         policy => policy
             .WithOrigins(
-                "http://localhost:5173",
-                "http://localhost:8080",
-                "ws://localhost:5173"
+                "http://web:5173",
+                "http://api:8080",
+                "ws://web:5173"
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
@@ -34,7 +34,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.RegisterDomain();
 builder.Services.RegisterQueuePublisher();
-builder.Services.RegisterQueueConsumer<ResponseJobConsumer>();
+builder.Services.RegisterQueueConsumer(typeof(ResponseJobConsumer));
 builder.Services.RegisterAsyncMessaging();
 
 var app = builder.Build();
@@ -49,8 +49,6 @@ app.UseRouting();
 
 app.UseCors("AllowLocalhost");
 
-app.UseHttpsRedirection();
-
 app.UseAuthorization();
 
 app.MapControllers();
@@ -58,12 +56,20 @@ app.MapControllers();
 var messageGroup = app.MapGroup("api/message");
 
 messageGroup.MapPost("/", async (IPublisher publisher, StringProcessRequest request) =>
-{
-    await publisher.Publish(new RequestJob("123", Guid.NewGuid().ToString(), request.Message));
-    
-    return Results.Accepted();
-}
+    {
+        var processId = Guid.NewGuid();
+        await publisher.Publish(new RequestJob("123", processId, request.Message));
+        return Results.Accepted(null, new { processId = processId.ToString() });
+    }
 );
+
+messageGroup.MapPost("/cancel", async (IPublisher publisher, StringCancelRequest request) =>
+    {
+        await publisher.Publish(new CancelJob(request.processId));
+        return Results.Accepted(null, new { processId = request.processId.ToString() });
+    }
+);
+
 messageGroup.MapHub<SignalRCharacterHub>("/responsehub");
 
 app.Run();
