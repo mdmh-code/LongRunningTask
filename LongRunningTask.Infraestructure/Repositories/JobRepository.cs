@@ -7,10 +7,10 @@ public class JobRepository(JobDbContext context) : IJobRepository
 {
     private readonly JobDbContext _context = context;
 
-    // CREATE
     public async Task CreateAsync(Job job)
     {
         var existingJob = await GetByIdAsync(job.JobId);
+
 
         if (existingJob != null)
         {
@@ -22,11 +22,17 @@ public class JobRepository(JobDbContext context) : IJobRepository
             throw new JobAlreadyExistsException($"Job with ID {job.JobId} already exists.", existingJob);
         }
 
+        var existingJobWithStatus = await GetByStatus(Job.PENDING_STATUS, Job.PROCESSING_STATUS);
+        
+        if (existingJobWithStatus != null)
+        {
+            throw new JobAlreadyExistsException($"Another job is running", existingJobWithStatus);
+        }
+
         _context.Jobs.Add(job);
         await _context.SaveChangesAsync();
     }
 
-    // READ (by id)
     public async Task<Job?> GetByIdAsync(Guid jobId)
     {
         return await _context.Jobs.AsNoTracking().FirstOrDefaultAsync(x => x.JobId == jobId);
@@ -64,8 +70,6 @@ public class JobRepository(JobDbContext context) : IJobRepository
         await _context.SaveChangesAsync();
     }
 
-
-    // DELETE
     public async Task DeleteAsync(Guid jobId)
     {
         var job = await _context.Jobs.FindAsync(jobId);
