@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { HubConnectionBuilder } from '@microsoft/signalr';
 import './App.css'
 
-
 function App() {
   const [message, setMessage] = useState("");
   const [response, setResponse] = useState<string | null>(null);
@@ -10,6 +9,8 @@ function App() {
   const [beingProcessed, setBeingProcessed] = useState(false);
   const [processCompleted, setProcessCompleted] = useState(false);
   const [processId, setProcessId] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [totalLength, setTotalLength] = useState(0);
 
 
   useEffect(() => {
@@ -30,9 +31,11 @@ function App() {
     conn.on("ReceiveCharacter", (char: string, userid: string, processId: string, position: number, isLast: boolean) => {
       console.log("Received character:", char, "for user:", userid, "process:", processId, "position:", position, "isLast:", isLast);
       setEmittedText(prev => prev + char);
+      setProgress(position + 1);
       if (isLast) {
         setBeingProcessed(false);
         setProcessCompleted(true);
+        setProgress(0);
       }
     });
 
@@ -54,6 +57,7 @@ function App() {
 
     try {
       setBeingProcessed(false);
+      setProgress(0);
       const res = await fetch("/api/message/cancel", {
         method: "POST",
         headers: {
@@ -112,6 +116,8 @@ function App() {
       setProcessId(null);
       setProcessCompleted(false);
       setBeingProcessed(true);
+      setProgress(0);
+      setTotalLength(message.length);
       const res = await fetch("/api/message/", {
         method: "POST",
         headers: {
@@ -141,35 +147,111 @@ function App() {
   };
 
   return (
-    <>
-      <h1>Long Running Task</h1>
-      <div className="card">
-        <input
-          type="text"
-          value={message}
-          onChange={e => setMessage(e.target.value)}
-          placeholder="Type your message"
-          disabled={beingProcessed === true}
-        />
-        <button onClick={handleSend} style={{ marginLeft: 8 }} disabled={beingProcessed === true}>Send</button>
-        <button onClick={handleCancel} style={{ marginLeft: 8 }} disabled={beingProcessed === false}>Cancel</button>
-        <div style={{ marginTop: 12 }}>
-          {response && <div>Response: {response}</div>}
-          {emittedText && (
-            <div style={{ marginTop: 12 }}>
-              <strong>Processed Text:</strong>
-              <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{emittedText}</div>
+    <div className="container py-4">
+      <div className="row justify-content-center">
+        <div className="col-12 col-lg-10 col-xl-8">
+          <div className="text-center mb-4">
+            <h1 className="display-4 mb-3">Long Running Task</h1>
+            <p className="lead text-muted">Process your messages with real-time progress tracking</p>
+          </div>
+
+          <div className="card shadow">
+            <div className="card-body p-4">
+              <div className="mb-3">
+                <label htmlFor="messageInput" className="form-label fw-semibold">
+                  Message to Process
+                </label>
+                <input
+                  id="messageInput"
+                  type="text"
+                  className="form-control form-control-lg"
+                  value={message}
+                  onChange={e => setMessage(e.target.value)}
+                  placeholder="Enter your message here..."
+                  disabled={beingProcessed}
+                />
+              </div>
+
+              <div className="d-flex gap-2 mb-3 flex-wrap">
+                <button 
+                  onClick={handleSend} 
+                  className="btn btn-primary btn-lg flex-grow-1 flex-sm-grow-0" 
+                  disabled={beingProcessed || !message.trim()}
+                >
+                  <i className="bi bi-send me-2"></i>
+                  Send
+                </button>
+                <button 
+                  onClick={handleCancel} 
+                  className="btn btn-danger btn-lg flex-grow-1 flex-sm-grow-0" 
+                  disabled={!beingProcessed}
+                >
+                  <i className="bi bi-x-circle me-2"></i>
+                  Cancel
+                </button>
+              </div>
+
+              {beingProcessed && totalLength > 0 && (
+                <div className="mb-3">
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <small className="text-muted fw-semibold">Processing Progress</small>
+                    <span className="badge bg-primary">
+                      {progress} / {totalLength} ({Math.round((progress / totalLength) * 100)}%)
+                    </span>
+                  </div>
+                  <div className="progress" style={{ height: '25px' }}>
+                    <div 
+                      className="progress-bar progress-bar-striped progress-bar-animated"
+                      role="progressbar"
+                      style={{ width: `${(progress / totalLength) * 100}%` }}
+                      aria-valuenow={progress}
+                      aria-valuemin={0}
+                      aria-valuemax={totalLength}
+                    >
+                      {Math.round((progress / totalLength) * 100)}%
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {response && (
+                <div className="alert alert-info d-flex align-items-start" role="alert">
+                  <i className="bi bi-info-circle-fill me-2 mt-1"></i>
+                  <div className="flex-grow-1">
+                    <strong>Response:</strong> {response}
+                  </div>
+                </div>
+              )}
+
+              {emittedText && (
+                <div className="mt-3">
+                  <div className="card bg-light">
+                    <div className="card-header bg-secondary text-white">
+                      <i className="bi bi-file-text me-2"></i>
+                      <strong>Processed Text</strong>
+                    </div>
+                    <div className="card-body">
+                      <div className="processed-text" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                        {emittedText}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {processCompleted && (
+            <div className="text-center mt-4">
+              <div className="alert alert-success d-inline-block" role="alert">
+                <i className="bi bi-check-circle-fill me-2"></i>
+                Text has been processed successfully!
+              </div>
             </div>
           )}
         </div>
       </div>
-      {
-        processCompleted &&
-        <p className="read-the-docs">
-          Text Has been processed!
-        </p>
-      }
-    </>
+    </div>
   )
 }
 
