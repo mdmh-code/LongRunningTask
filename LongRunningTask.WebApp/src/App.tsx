@@ -147,15 +147,15 @@ function App() {
   };
 
   return (
-    <div className="container py-4">
-      <div className="row justify-content-center">
-        <div className="col-12 col-lg-10 col-xl-8">
+    <div className="container-fluid vh-100 d-flex flex-column">
+      <div className="row flex-grow-1">
+        <div className="col-12 col-md-6 d-flex flex-column justify-content-center p-4">
           <div className="text-center mb-4">
             <h1 className="display-4 mb-3">Long Running Task</h1>
             <p className="lead text-muted">Process your messages with real-time progress tracking</p>
           </div>
 
-          <div className="card shadow">
+          <div className="card shadow mb-3">
             <div className="card-body p-4">
               <div className="mb-3">
                 <label htmlFor="messageInput" className="form-label fw-semibold">
@@ -191,28 +191,27 @@ function App() {
                 </button>
               </div>
 
-              {beingProcessed && totalLength > 0 && (
-                <div className="mb-3">
-                  <div className="d-flex justify-content-between align-items-center mb-2">
-                    <small className="text-muted fw-semibold">Processing Progress</small>
+              <div className="mb-3">
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <small className="text-muted fw-semibold">Processing Status</small>
+                  {beingProcessed && (
                     <span className="badge bg-primary">
-                      {progress} / {totalLength} ({Math.round((progress / totalLength) * 100)}%)
+                      Processing...
                     </span>
-                  </div>
-                  <div className="progress" style={{ height: '25px' }}>
-                    <div 
-                      className="progress-bar progress-bar-striped progress-bar-animated"
-                      role="progressbar"
-                      style={{ width: `${(progress / totalLength) * 100}%` }}
-                      aria-valuenow={progress}
-                      aria-valuemin={0}
-                      aria-valuemax={totalLength}
-                    >
-                      {Math.round((progress / totalLength) * 100)}%
-                    </div>
+                  )}
+                </div>
+                <div className="progress" style={{ height: '25px' }}>
+                  <div 
+                    className={`progress-bar ${beingProcessed ? 'progress-bar-striped progress-bar-animated' : ''}`}
+                    role="progressbar"
+                    style={{ width: beingProcessed && totalLength > 0 ? `${(progress / totalLength) * 100}%` : '0%' }}
+                    aria-valuenow={progress}
+                    aria-valuemin={0}
+                    aria-valuemax={totalLength}
+                  >
                   </div>
                 </div>
-              )}
+              </div>
 
               {response && (
                 <div className="alert alert-info d-flex align-items-start" role="alert">
@@ -222,33 +221,40 @@ function App() {
                   </div>
                 </div>
               )}
-
-              {emittedText && (
-                <div className="mt-3">
-                  <div className="card bg-light">
-                    <div className="card-header bg-secondary text-white">
-                      <i className="bi bi-file-text me-2"></i>
-                      <strong>Processed Text</strong>
-                    </div>
-                    <div className="card-body">
-                      <div className="processed-text" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                        {emittedText}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
           {processCompleted && (
-            <div className="text-center mt-4">
+            <div className="text-center">
               <div className="alert alert-success d-inline-block" role="alert">
                 <i className="bi bi-check-circle-fill me-2"></i>
                 Text has been processed successfully!
               </div>
             </div>
           )}
+        </div>
+
+        <div className="col-12 col-md-6 d-flex flex-column p-4">
+          <div className="card shadow h-100">
+            <div className="card-header bg-secondary text-white">
+              <i className="bi bi-file-text me-2"></i>
+              <strong>Processed Text</strong>
+            </div>
+            <div className="card-body d-flex flex-column">
+              {emittedText ? (
+                <div className="processed-text flex-grow-1" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                  {emittedText}
+                </div>
+              ) : (
+                <div className="text-center text-muted d-flex align-items-center justify-content-center flex-grow-1">
+                  <div>
+                    <i className="bi bi-inbox" style={{ fontSize: '3rem' }}></i>
+                    <p className="mt-3">No processed text yet. Send a message to start processing.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
