@@ -1,2 +1,1 @@
-# run the command
-docker-compose up --build
+Check the readme.html
