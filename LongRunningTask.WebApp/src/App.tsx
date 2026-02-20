@@ -151,7 +151,7 @@ function App() {
       <div className="row flex-grow-1">
         <div className="col-12 col-md-6 d-flex flex-column justify-content-center p-4">
           <div className="text-center mb-4">
-            <h1 className="display-4 mb-3">Long Running Task</h1>
+            <h1 className="display-4 mb-3">Mario's Long Running Task</h1>
             <p className="lead text-muted">Process your messages with real-time progress tracking</p>
           </div>
 
